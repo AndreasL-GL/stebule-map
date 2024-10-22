@@ -1,25 +1,79 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useEffect, useState } from 'react';
+import { MapContainer, TileLayer, CircleMarker, Popup, Polyline, Marker } from 'react-leaflet';
+import 'leaflet-defaulticon-compatibility';
+import 'leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css';
+import 'leaflet/dist/leaflet.css';
 
-function App() {
+export default function LeafletMap() {
+  const [points, setPoints] = useState([]);
+  const [userLocation, setUserLocation] = useState(null);
+
+  // Extract the query params from the URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const query = params.get('q');
+    if (query) {
+      const coords = query.split('|').map(point => {
+        const [lat, lon] = point.split(',');
+        return { lat: parseFloat(lat), lon: parseFloat(lon) };
+      });
+      setPoints(coords);
+    }
+  }, []);
+
+  // Get user's location and update it every 5 seconds
+  useEffect(() => {
+    const updateLocation = () => {
+      navigator.geolocation.getCurrentPosition((position) => {
+        setUserLocation({
+          lat: position.coords.latitude,
+          lon: position.coords.longitude,
+        });
+      });
+    };
+
+    updateLocation(); // Initial call
+    const intervalId = setInterval(updateLocation, 5000); // Update every 5 seconds
+
+    return () => clearInterval(intervalId); // Cleanup on unmount
+  }, []);
+
+  // Create an array of LatLng for the polyline
+  const polylinePoints = points.map(point => [point.lat, point.lon]);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <MapContainer center={[57.6872946, 11.9974029]} zoom={15} style={{ height: "100vh", width: "100%" }}>
+      <TileLayer
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      />
+      
+      {/* Draw Polyline between points with smoother color */}
+      {points.length > 1 && <Polyline positions={polylinePoints} color="#4CAF50" />}
+
+      {/* Add CircleMarkers for each point */}
+      {points.map((point, index) => (
+        <CircleMarker key={index} center={[point.lat, point.lon]} radius={8} color="#FF5722" fillOpacity={0.8}>
+          <Popup>
+            <a
+              href={`https://www.google.com/maps/dir/?api=1&destination=${point.lat},${point.lon}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Navigate to this point
+            </a>
+          </Popup>
+        </CircleMarker>
+      ))}
+
+      {/* Add user location marker */}
+      {userLocation && (
+        <Marker position={[userLocation.lat, userLocation.lon]}>
+          <Popup>
+            Your location
+          </Popup>
+        </Marker>
+      )}
+    </MapContainer>
   );
 }
-
-export default App;
