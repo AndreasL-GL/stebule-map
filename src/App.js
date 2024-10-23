@@ -1,13 +1,26 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { MapContainer, TileLayer, CircleMarker, Popup, Polyline, Marker } from 'react-leaflet';
+import { MapContainer, TileLayer, CircleMarker, Popup, Polyline, Marker, useMap } from 'react-leaflet';
 import 'leaflet-defaulticon-compatibility';
 import 'leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css';
 import 'leaflet/dist/leaflet.css';
 
+
+function MapEventHandler({ center }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (center) {
+      map.setView(center); 
+    }
+  }, [center, map]);
+
+  return null; 
+}
+
 export default function LeafletMap() {
   const [points, setPoints] = useState([]);
   const [userLocation, setUserLocation] = useState(null);
-  const mapRef = useRef<LeafletMap | null>(null);
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const query = params.get('q');
@@ -19,11 +32,6 @@ export default function LeafletMap() {
       setPoints(coords);
     }
   }, []);
-  useEffect(() => {
-    if (mapRef.current && userLocation){
-      mapRef.center = Object.values(userLocation)
-    }
-  },[mapRef?.current, userLocation])
 
   useEffect(() => {
     const updateLocation = () => {
@@ -42,9 +50,9 @@ export default function LeafletMap() {
   }, []);
 
   const polylinePoints = points.map(point => [point.lat, point.lon]);
-
+  const center = points.length > 0 ? [points[0].lat, points[0].lon] : [54.6872, 25.2797]; // Default to London if no points
   return (
-    <MapContainer ref={mapRef} center={[57.6872946, 11.9974029]} zoom={15} style={{ height: "100vh", width: "100%" }}>
+    <MapContainer center={center} zoom={15} style={{ height: "100vh", width: "100%" }}>
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -57,7 +65,7 @@ export default function LeafletMap() {
         <CircleMarker key={index} center={[point.lat, point.lon]} radius={8} color="#FF5722" fillOpacity={0.8}>
           <Popup>
             <a
-              href={`https://www.google.com/maps/dir/?api=1&destination=${point.lat},${point.lon}`}
+              href={`https://maps.apple.com/?daddr=${point.lat},${point.lon}&dirflg=d`}
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -75,6 +83,7 @@ export default function LeafletMap() {
           </Popup>
         </Marker>
       )}
+      <MapEventHandler center={points[Math.floor(points.length/2)]} />
     </MapContainer>
   );
 }
