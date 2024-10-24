@@ -35,7 +35,7 @@ export default function LeafletMap() {
     else {
       const id = params.get('id');
       if (id){
-        const url = `http://localhost:3000/StebuleMap?id=${id}` // `https://greenapps-dev.azurewebsites.net/StebuleMap?id=${id}`
+        const url = `https://greenapps-dev.azurewebsites.net/StebuleMap?id=${id}`
         fetch(url).then(d => d.json()).then(data => {
           console.log(data);
           const coords = data.join('|').split('|').map(point => {
