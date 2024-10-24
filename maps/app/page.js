@@ -20,7 +20,6 @@ function MapEventHandler({ center }) {
 export default function LeafletMap() {
   const [points, setPoints] = useState([]);
   const [userLocation, setUserLocation] = useState(null);
-  const [isFromQ, setIsFromQ] = useState(true);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -32,21 +31,9 @@ export default function LeafletMap() {
       });
       setPoints(coords);
     }
-    else {
-      const id = params.get('id');
-      if (id){
-        const url = `http://localhost:3000/StebuleMap?id=${id}` // `https://greenapps-dev.azurewebsites.net/StebuleMap?id=${id}`
-        fetch(url).then(d => d.json()).then(data => {
-          console.log(data);
-          const coords = data.join('|').split('|').map(point => {
-          const [lat, lon] = point.split(',');
-          return { lat: parseFloat(lat), lon: parseFloat(lon) };
-        });
-        setPoints(coords);
-        setIsFromQ(false);
-      }).catch(e => console.log(e));
-      }
-    }
+  }, []);
+
+  useEffect(() => {
     const updateLocation = () => {
       navigator.geolocation.getCurrentPosition((position) => {
         setUserLocation({
@@ -62,7 +49,6 @@ export default function LeafletMap() {
     return () => clearInterval(intervalId); 
   }, []);
 
-
   const polylinePoints = points.map(point => [point.lat, point.lon]);
   const center = points.length > 0 ? [points[0].lat, points[0].lon] : [54.6872, 25.2797]; // Default to London if no points
   return (
@@ -73,10 +59,10 @@ export default function LeafletMap() {
       />
       
 
-      {points.length > 1 && isFromQ && <Polyline positions={polylinePoints} color="#4CAF50" />}
+      {points.length > 1 && <Polyline positions={polylinePoints} color="#4CAF50" />}
 
       {points.map((point, index) => (
-        <CircleMarker key={index} center={[point.lat, point.lon]} radius={4} color="#FF5722" fillOpacity={0.8}>
+        <CircleMarker key={index} center={[point.lat, point.lon]} radius={8} color="#FF5722" fillOpacity={0.8}>
           <Popup>
             <a
               href={`https://maps.apple.com/?daddr=${point.lat},${point.lon}&dirflg=d`}
