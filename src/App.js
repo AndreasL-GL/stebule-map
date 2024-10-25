@@ -21,7 +21,7 @@ export default function LeafletMap() {
   const [points, setPoints] = useState([]);
   const [userLocation, setUserLocation] = useState(null);
   const [isFromQ, setIsFromQ] = useState(true);
-
+  const [tracks, setTracks] = useState([])
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const query = params.get('q');
@@ -35,9 +35,15 @@ export default function LeafletMap() {
     else {
       const id = params.get('id');
       if (id){
-        const url = `https://greenapps-dev.azurewebsites.net/StebuleMap?id=${id}`
+        const url = `http://localhost:3000/StebuleMap?id=${id}`;
         fetch(url).then(d => d.json()).then(data => {
           console.log(data);
+          const tracks = data.map(d => d.split('|').map(point => {
+            const [lat,lon] = point.split(',')
+            return {lat: parseFloat(lat), lon:parseFloat(lon)}
+          }));
+          setTracks(tracks);
+          
           const coords = data.join('|').split('|').map(point => {
           const [lat, lon] = point.split(',');
           return { lat: parseFloat(lat), lon: parseFloat(lon) };
@@ -74,9 +80,10 @@ export default function LeafletMap() {
       
 
       {points.length > 1 && isFromQ && <Polyline positions={polylinePoints} color="#4CAF50" />}
-
-      {points.map((point, index) => (
-        <CircleMarker key={index} center={[point.lat, point.lon]} radius={4} color="#FF5722" fillOpacity={0.8}>
+      {tracks.map(t => <Polyline positions={t.map(tt => [tt.lat, tt.lon])} color={"#" + Math.floor(Math.random() * 16777215).toString(16)} width={8} stroke={8} />)}
+        
+      {isFromQ && points.map((point, index) => (
+        <CircleMarker key={index} center={[point.lat, point.lon]} radius={isFromQ ? 8 : 2} color="#FF5722" fillOpacity={0.8}>
           <Popup>
             <a
               href={`https://maps.apple.com/?daddr=${point.lat},${point.lon}&dirflg=d`}
@@ -89,7 +96,6 @@ export default function LeafletMap() {
         </CircleMarker>
       ))}
 
-      {/* Add user location marker */}
       {userLocation && (
         <Marker position={[userLocation.lat, userLocation.lon]}>
           <Popup>
