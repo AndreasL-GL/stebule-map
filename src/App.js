@@ -82,8 +82,8 @@ export default function LeafletMap() {
       {points.length > 1 && isFromQ && <Polyline positions={polylinePoints} color="#4CAF50" />}
       {tracks.map(t => <Polyline positions={t.map(tt => [tt.lat, tt.lon])} color={"#" + Math.floor(Math.random() * 16777215).toString(16)} width={8} stroke={8} />)}
 
-      {isFromQ && points.map((point, index) => (
-        <CircleMarker key={index} center={[point.lat, point.lon]} radius={isFromQ ? 8 : 2} color="#FF5722" fillOpacity={0.8}>
+      {points.map((point, index) => (
+        <CircleMarker key={index} center={[point.lat, point.lon]} radius={isFromQ ? 8 : 1} color="#FF5722" fillOpacity={0.8}>
           <Popup>
             <a
               href={`https://maps.apple.com/?daddr=${point.lat},${point.lon}&dirflg=d`}
