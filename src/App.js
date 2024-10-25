@@ -17,6 +17,17 @@ function MapEventHandler({ center }) {
   return null; 
 }
 
+const colors = [
+  '#8c510a', '#d8b3FF', '#f600c3',
+  '#ff5502', '#00eae5', '#5ab4ac', '#01665e'
+];
+
+function getColorFromHash(hash) {
+  const numericHash = typeof hash === 'number' ? hash : hash.toString().split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const index = numericHash % colors.length;
+  return colors[index];
+}
+
 export default function LeafletMap() {
   const [points, setPoints] = useState([]);
   const [userLocation, setUserLocation] = useState(null);
@@ -37,7 +48,6 @@ export default function LeafletMap() {
       if (id){
         const url = `https://greenapps-dev.azurewebsites.net/StebuleMap?id=${id}`;
         fetch(url).then(d => d.json()).then(data => {
-          console.log(data);
           const tracks = data.map(d => d.split('|').map(point => {
             const [lat,lon] = point.split(',')
             return {lat: parseFloat(lat), lon:parseFloat(lon)}
@@ -71,7 +81,8 @@ export default function LeafletMap() {
 
   const polylinePoints = points.map(point => [point.lat, point.lon]);
   const center = points.length > 0 ? [points[0].lat, points[0].lon] : [54.6872, 25.2797]; // Default to London if no points
-  return (
+  return (<>
+    {/* {colors.map(c => <div style={{backgroundColor:c, borderRadius:"50%"}}>{c}</div>)} */}
     <MapContainer center={center} zoom={15} style={{ height: "100vh", width: "100%" }}>
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -79,11 +90,12 @@ export default function LeafletMap() {
       />
       
 
-      {points.length > 1 && isFromQ && <Polyline positions={polylinePoints} color="#4CAF50" />}
-      {tracks.map(t => <Polyline positions={t.map(tt => [tt.lat, tt.lon])} color={"#" + Math.floor(Math.random() * 16777215).toString(16)} width={8} stroke={8} />)}
+      {points.length > 1 && isFromQ && <Polyline positions={polylinePoints} color="#4CAF50"/>}
+      {tracks.map(t => <Polyline positions={t.map(tt => [tt.lat, tt.lon])} color={getColorFromHash(JSON.stringify(t))} width={8} stroke={8} weight={6} >
+      </Polyline>)}
 
       {points.map((point, index) => (
-        <CircleMarker key={index} center={[point.lat, point.lon]} radius={isFromQ ? 8 : 1} color="#FF5722" fillOpacity={0.8}>
+        <CircleMarker key={index} center={[point.lat, point.lon]} radius={isFromQ ? 8 : 1} color="#7070AF" fillOpacity={0.8}>
           <Popup>
             <a
               href={`https://maps.apple.com/?daddr=${point.lat},${point.lon}&dirflg=d`}
@@ -105,5 +117,6 @@ export default function LeafletMap() {
       )}
       <MapEventHandler center={points[Math.floor(points.length/2)]} />
     </MapContainer>
+    </>
   );
 }
