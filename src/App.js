@@ -46,7 +46,7 @@ export default function LeafletMap() {
     else {
       const id = params.get('id');
       if (id){
-        const url = `https://greenapps-dev.azurewebsites.net/StebuleMap?id=${id}`;
+        const url = `https://greenapps-prod.azurewebsites.net/StebuleMap?id=${id}`;
         fetch(url).then(d => d.json()).then(data => {
           const tracks = data.map(d => d.split('|').map(point => {
             const [lat,lon] = point.split(',')
